@@ -5,6 +5,9 @@
 #include <cstring>
 #include <algorithm>
 #include <cmath>
+#include <sstream>
+#include <iomanip>
+#include <stdint.h>
 
 class RC6{
 
@@ -16,7 +19,7 @@ private:
                                   // r:     nonnegative number of rounds
                                   // b:     length of the encryption key in bytes
                                   // log_w: base-two logarithm of w
-  unsigned long int modulo;       // modulo:2 ^ w
+  int64_t modulo;        // modulo:2 ^ w
   std::string mode, text, key;    // mode:  encryption or decryption
                                   // text:  text to excrypt or decrypt
                                   // key:   user supplied key
@@ -86,21 +89,7 @@ private:
    ******************************************************************/
   std::string little_endian(std::string);
 
-  /******************************************************************
-   * Function: string_to_hex
-   * Input: <std::string>
-   * Output: std:string
-   * Description: Converts input string to hex representation
-   ******************************************************************/
-  std::string string_to_hex(std::string);
-
-  /******************************************************************
-   * Function: hex_to_string 
-   * Input: <std::string>
-   * Output: std::string
-   * Description: Converts input hex to string representation
-   ******************************************************************/
-  std::string hex_to_string(std::string);
+  std::string hex_to_string(unsigned int A, unsigned int B, unsigned int C, unsigned int D);
 
 public:
   // RC6-w/r/b

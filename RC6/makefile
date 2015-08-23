@@ -1,7 +1,7 @@
 # Configurations
 PROJECT	=	run
 CC	=	g++
-FLAGS	=	-g -std=c++11
+FLAGS	=	-g
 WFLAGS	=	-Wall -Wextra
 OPTIMIZATION =	-O2
 OBJ	=	RC6.o
@@ -32,8 +32,8 @@ clean:
 # tar relevent files
 tar:		clean
 		cd ..; \
-		tar -cvf RC6.tar RC6
+		tar -cvf RC6_enc.tar RC6
 
 rm_tar:
 		cd ..; \
-		rm RC6.tar
+		rm RC6_enc.tar

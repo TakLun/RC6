@@ -153,16 +153,8 @@ int main(int argc, char *argv[]){
   result = rc6->run(mode, text, userkey);
 
   if(mode.compare(0, strlen("Encryption"), "Encryption") == 0){
-    std::cout << "\n" << mode << "\n";
-    std::cout << "plaintext: " << text << "\n";
-    std::cout << "userkey: " << userkey << "\n";
-    std::cout << "ciphertext: " << result << "\n";
     outputfile << "ciphertext: " << result << std::endl;
   }else if(mode.compare(0, strlen("Decryption"), "Decryption") == 0){
-    std::cout << "\n" << mode << "\n";
-    std::cout << "ciphertext: " << text << "\n";
-    std::cout << "userkey: " << userkey << "\n";
-    std::cout << "plaintext: " << result << "\n";
     outputfile << "plaintext: " << result << std::endl;
   }
 

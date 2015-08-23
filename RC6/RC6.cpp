@@ -5,13 +5,13 @@ RC6::RC6(unsigned int W, unsigned int R, unsigned int B){
   r = R;
   b = B;
   log_w = (unsigned int)log2(w);
-  modulo = pow(2, w);
+  modulo = std::pow(2, w);
   S = new unsigned int[2 * r + 4];
 }
 
 void RC6::rc_constraints(const unsigned int &w, unsigned int &p, unsigned int &q){
-  p = (unsigned int)std::ceil(((M_E - 2) * pow(2, w)));
-  q = (unsigned int)((1.618033988749895 - 1) * pow(2, w));    // Golden Ratio
+  p = (unsigned int)std::ceil(((M_E - 2) * std::pow(2, w)));
+  q = (unsigned int)((1.618033988749895 - 1) * std::pow(2, w));    // Golden Ratio
 }
 
 /******************************************************************
@@ -53,57 +53,51 @@ std::string RC6::little_endian(std::string str){
   
   if(str.length() % 2 == 0){
     for(std::string::reverse_iterator r_it = str.rbegin();
-	r_it != str.rend();r_it = r_it + 2){
+	     r_it != str.rend();r_it = r_it + 2){
       endian.push_back(*(r_it+1));
       endian.push_back(*r_it);
     }
   }else{
-    return str;
+    str = "0" + str;
+    for(std::string::reverse_iterator r_it = str.rbegin();
+      r_it != str.rend();r_it = r_it + 2){
+      endian.push_back(*(r_it+1));
+      endian.push_back(*r_it);
+    }
   }
 
   return endian;
 }
 
-/******************************************************************
- * Function: string_to_hex
- * Input: <std::string>
- * Output: std:string
- * Description: Converts input string to hex representation
- ******************************************************************/
-std::string RC6::string_to_hex(std::string str){
-  static const char* const hex_char = "0123456789ABCDEF";
-  size_t len = str.length();
+std::string RC6::hex_to_string(unsigned int A, unsigned int B, unsigned int C, unsigned int D){
+
+  std::string strA, strB, strC, strD, result;
+
+  std::stringstream ss;
+  ss << std::setfill('0') << std::setw(4) <<std::hex << A;
+  strA = little_endian(ss.str());
+  ss.str("");
+  ss.clear();
+
+  ss << std::setfill('0') << std::setw(4) <<std::hex << B;
+  strB = little_endian(ss.str());
+  ss.str("");
+  ss.clear();
   
-  std::string hex;
-  for (size_t i = 0; i < len; ++i){
-    const unsigned char c = str[i];
-    hex.push_back(hex_char[c >> 4]);
-    hex.push_back(hex_char[c & 15]);
-  }
-  return hex;
-}
+  ss << std::setfill('0') << std::setw(4) <<std::hex << C;
+  strC = little_endian(ss.str());
+  ss.str("");
+  ss.clear();
 
-/******************************************************************
- * Function: hex_to_string 
- * Input: <std::string>
- * Output: std::string
- * Description: Converts input hex to string representation
- ******************************************************************/
-std::string RC6::hex_to_string(std::string hex){
-  static const char* const hex_char = "0123456789ABCDEF";
-  size_t len = hex.length();
+  ss << std::setfill('0') << std::setw(4) <<std::hex << D;
+  strD = little_endian(ss.str());
+  ss.str("");
+  ss.clear();
 
-  std::string str;
-  for (size_t i = 0; i < len; i += 2){
-    char a = hex[i];
-    const char* p = std::lower_bound(hex_char, hex_char + 16, a);
-    
-    char b = hex[i + 1];
-    const char* q = std::lower_bound(hex_char, hex_char + 16, b);
+  result = strA + strB + strC + strD;
 
-    str.push_back(((p - hex_char) << 4) | (q - hex_char));
-  }
-  return str;
+  return result;
+
 }
 
 /******************************************************************
@@ -123,10 +117,6 @@ void RC6::key_schedule(std::string key){
   unsigned int p, q;
   rc_constraints(w, p, q);
 
-  std::cout << "magic constraints: \n";
-  std::cout << "p: " << std::hex << p << "\nq: " << std::hex << q << "\n";
-  std::cout << "actual: \np: 0xB7E15163\nq: 0x9E3779B9\n\n"; 
-
   L = new unsigned int[c];
   for(int i = 0; i < c; i++){
     L[i] = strtoul(little_endian(key.substr(w_bytes * 2 * i, w_bytes * 2)).c_str(), NULL, 16);
@@ -139,7 +129,6 @@ void RC6::key_schedule(std::string key){
 
   unsigned int A = 0, B = 0, i = 0, j = 0;
   int v = 3 * std::max(c, (2 * r + 4));
-
   for(int s = 1; s <= v; s++){
     A = S[i] = left_rot((S[i] + A + B) % modulo, 3, w);
     B = L[j] = left_rot((L[j] + A + B) % modulo, (A + B), w);
@@ -158,25 +147,19 @@ std::string RC6::encrypt(const std::string &text){
   std::string result;
   
   unsigned int A, B, C, D;
-  A = strtoul(text.substr(0, 8).c_str(), NULL, 16);
-  B = strtoul(text.substr(8, 8).c_str(), NULL, 16);
-  C = strtoul(text.substr(16, 8).c_str(), NULL, 16);
-  D = strtoul(text.substr(24, 8).c_str(), NULL, 16);
+  A = strtoul(little_endian(text.substr(0, 8)).c_str(), NULL, 16);
+  B = strtoul(little_endian(text.substr(8, 8)).c_str(), NULL, 16);
+  C = strtoul(little_endian(text.substr(16, 8)).c_str(), NULL, 16);
+  D = strtoul(little_endian(text.substr(24, 8)).c_str(), NULL, 16);
 
-  std::cout << "text: " << text << "\n";
-  std::cout << "A: " << std::hex << A << "\n";
-  std::cout << "B: " << std::hex << B << "\n";
-  std::cout << "C: " << std::hex << C << "\n";
-  std::cout << "D: " << std::hex << D << "\n\n";
-
-  unsigned long int t, u, temp;
+  int32_t t, u, temp;
 
   B += S[0];
   D += S[1];
   for(int i = 1; i <= r; ++i){
     t = left_rot((B * (2 * B + 1)) % modulo, log_w, w);
     u = left_rot((D * (2 * D + 1)) % modulo, log_w, w);
-    A = left_rot((A ^ t), u, w) + S[2 * i];
+    A = left_rot((A ^ t), u , w) + S[2 * i];
     C = left_rot((C ^ u), t, w) + S[2 * i + 1];
     temp = A;
     A = B;
@@ -188,8 +171,7 @@ std::string RC6::encrypt(const std::string &text){
   A += S[2 * r + 2];
   C += S[2 * r + 3];
 
-  std::cout << "cipher: " << std::hex << A << std::hex << B << std::hex << C << std::hex << D << "\n";
-  std::cout << "actual: " << "8fc3a53656b1f778c129df4e9848a41e\n";
+  result = hex_to_string(A, B, C, D);
 
   return result;
 }
@@ -204,18 +186,11 @@ std::string RC6::decrypt(const std::string &text){
   std::string result;
   
   unsigned int A, B, C, D;
-  A = strtoul(text.substr(0, 8).c_str(), NULL, 16);
-  B = strtoul(text.substr(8, 8).c_str(), NULL, 16);
-  C = strtoul(text.substr(16, 8).c_str(), NULL, 16);
-  D = strtoul(text.substr(24, 8).c_str(), NULL, 16);
+  A = strtoul(little_endian(text.substr(0, 8)).c_str(), NULL, 16);
+  B = strtoul(little_endian(text.substr(8, 8)).c_str(), NULL, 16);
+  C = strtoul(little_endian(text.substr(16, 8)).c_str(), NULL, 16);
+  D = strtoul(little_endian(text.substr(24, 8)).c_str(), NULL, 16);
 
-  std::cout << "text: " << text << "\n";
-  std::cout << "A: " << std::hex << A << "\n";
-  std::cout << "B: " << std::hex << B << "\n";
-  std::cout << "C: " << std::hex << C << "\n";
-  std::cout << "D: " << std::hex << D << "\n\n";  
-
-  
   unsigned int t, u, temp;  
   
   C -= S[2 * r + 3];
@@ -234,8 +209,8 @@ std::string RC6::decrypt(const std::string &text){
   D -= S[1];
   B -= S[0];
 
-  std::cout << "plaint: " << std::hex << A << std::hex << B << std::hex << C << std::hex << D << "\n";
-  std::cout << "actual: " << "00000000000000000000000000000000\n";
+  result = hex_to_string(A, B, C, D);
+
   return result;
 }
 
@@ -246,55 +221,21 @@ std::string RC6::run(const std::string &mode, const std::string &text, const std
   std::string result;
 
   key_schedule(key);
-
-  std::cout << "\n";
-  std::cout << "mode: " << mode << "\n";
-  std::cout << "text: " << text << "\n";
-  std::cout << "key: " << key << "\n";
-  std::cout << "\n" << std::dec;
-  std::cout << "w: " << w << "\n";
-  std::cout << "r: " << r << "\n";
-  std::cout << "b: " << b << "\n";
-  std::cout << "log w: " << log_w << "\n";
-  std::cout << "modulo: " << modulo << "\n";
-
-  unsigned int orig = 0x0B7654321;
-  unsigned int left = left_rot(orig, 5, w);
-  unsigned int right = right_rot(left, 165, w);
-  std::cout << "\norig: " << std::hex << orig << std::endl;
-  std::cout << "left: " << std::hex << left << std::endl;
-  std::cout << "rite: " << std::hex << right << std::endl;
-
-  std::string un_end = "0A0B0CAF2025F2";
-  std::string lil_end = little_endian(un_end);
-  std::cout << "\noriginal: " << un_end << "\nlittle endian: " << lil_end << "\n";
-
-  std::cout << "\nL[ ]:\n";
-  for(int i = 0; i < (b / (w / 8)); i++){
-    std::cout << std::hex << L[i] << " ";
-  }
-
-  std::cout << "\nS[ ]:\n";
-  for(int i = 0; i < (2 * r + 4); i++){
-    std::cout << "[" << std::dec << i << "]" << std::hex << S[i] << "\n";
-  }
-
-  std::cout << "\n\n";
-
   
   if(mode.compare(0, strlen("Encryption"), "Encryption") == 0){
-    result = encrypt(text);
+    std::string encryption = encrypt(text);
+    for(std::string::iterator it = encryption.begin(); it != encryption.end();it = it + 2){
+      result.push_back(*it);
+      result.push_back(*(it+1));
+      result = result + " ";
+    }
   }else if(mode.compare(0, strlen("Decryption"), "Decryption") == 0){
-    result = decrypt(text);
-  }
-
-  
-  int n = 1;
-  // little endian if true
-  if(*(char *)&n == 1) { 
-    std::cout << "\nThis machine is little endian\n";
-  }else{
-    std::cout << "\nThis machine is big endian\n";
+    std::string decryption = decrypt(text);
+    for(std::string::iterator it = decryption.begin(); it != decryption.end();it = it + 2){
+      result.push_back(*it);
+      result.push_back(*(it+1));
+      result = result + " ";
+    }
   }
 
   return result;
