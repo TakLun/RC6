@@ -1,13 +1,9 @@
 #ifndef RC6_HPP__
 #define RC6_HPP__
 
-#include <iostream>
-#include <cstring>
-#include <algorithm>
-#include <cmath>
-#include <sstream>
-#include <iomanip>
-#include <stdint.h>
+#include <string>
+#include <cstdint>
+#include <vector>
 
 class RC6{
 
@@ -69,7 +65,7 @@ private:
    * Description: Rotate the w-bit word a to the left by the amount
    *              given by the least significant log w bits of b
    ******************************************************************/
-  int left_rot(unsigned int, unsigned int, unsigned int);
+  int left_rot(unsigned int, unsigned int, unsigned int) const;
 
   /******************************************************************
    * Function: right_rot
@@ -78,7 +74,7 @@ private:
    * Description: Rotate the w-bit word a to the right by the amount
    *              given by the least significant log w bits of b
    ******************************************************************/
-  int right_rot(unsigned int, unsigned int, unsigned int);
+  int right_rot(unsigned int, unsigned int, unsigned int) const;
 
   /******************************************************************
    * Function: little_endian
@@ -87,8 +83,10 @@ private:
    * Description: Convert input string to little endian version by bytes
    *              and return new little endian string
    ******************************************************************/
+  static
   std::string little_endian(std::string);
 
+  static
   std::string hex_to_string(unsigned int A, unsigned int B, unsigned int C, unsigned int D);
 
 public:

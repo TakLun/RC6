@@ -1,5 +1,9 @@
 #include "RC6.hpp"
 
+#include <cmath>
+#include <cstring>
+#include <iomanip>
+
 RC6::RC6(unsigned int W, unsigned int R, unsigned int B){
   w = W;
   r = R;
@@ -21,7 +25,7 @@ void RC6::rc_constraints(const unsigned int &w, unsigned int &p, unsigned int &q
  * Description: Rotate the w-bit word a to the left by the amount
  *              given by the least significant log w bits of b
  ******************************************************************/
-int RC6::left_rot(unsigned int a, unsigned int b, unsigned int w){
+int RC6::left_rot(unsigned int a, unsigned int b, unsigned int w) const {
   b <<= w - log_w;
   b >>= w - log_w;
   return (a << b) | (a >> (w - b));  
@@ -34,7 +38,7 @@ int RC6::left_rot(unsigned int a, unsigned int b, unsigned int w){
  * Description: Rotate the w-bit word a to the right by the amount
  *              given by the least significant log w bits of b
  ******************************************************************/
-int RC6::right_rot(unsigned int a, unsigned int b, unsigned int w){
+int RC6::right_rot(unsigned int a, unsigned int b, unsigned int w) const {
   b <<= w - log_w;
   b >>= w - log_w;
   return (a >> b) | (a << (w - b));
