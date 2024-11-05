@@ -147,10 +147,8 @@ int main(int argc, char *argv[]){
   remove_whitespace(text);
   remove_whitespace(userkey);
 
-  std::string result;
-
-  RC6 *rc6 = new RC6(RC6_W, RC6_R, keylength(userkey));
-  result = rc6->run(mode, text, userkey);
+  RC6 rc6 = RC6(RC6_W, RC6_R, keylength(userkey));
+  const std::string result = rc6.run(mode, text, userkey);
 
   if(mode.compare(0, strlen("Encryption"), "Encryption") == 0){
     outputfile << "ciphertext: " << result << std::endl;
@@ -158,7 +156,6 @@ int main(int argc, char *argv[]){
     outputfile << "plaintext: " << result << std::endl;
   }
 
-  delete rc6;
   inputfile.close();
   outputfile.close();
 
