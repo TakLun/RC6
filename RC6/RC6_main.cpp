@@ -36,20 +36,21 @@ void usage(int argc, char *argv[]){
  *              decryption. Extracts mode of RC6, text to encrypt
  *              or decrypt, and userkey
  ******************************************************************/
-bool parseRC6Textfile(std::fstream &file, std::string &mode, 
-		   std::string &text, std::string &userkey){
+bool parseRC6Textfile(std::istream& file, std::string& mode,
+		   std::string& text, std::string& userkey){
   std::string line;
   int linenum = 0;
   bool err = false;
-  if(file.is_open()){
+  if(file){
     while(!file.eof() && !err){
       getline(file, line);
       switch(linenum){
       case 0:
-	if(line.compare(0, strlen("Encryption"), "Encryption") == 0 || 
-	   line.compare(0, strlen("Decryption"), "Decryption") == 0){
+	if(line=="Encryption" ||
+	   line=="Decryption"){
 	  mode = line;
 	}else{
+	  throw std::runtime_error("Line 0 is \"" + line + "\"");
 	  err = true;
 	}
 	++linenum;
@@ -60,6 +61,7 @@ bool parseRC6Textfile(std::fstream &file, std::string &mode,
 	}else if(line.compare(0, strlen("ciphertext: "), "ciphertext: ") == 0){
 	  text = line.substr(strlen("ciphertext: "), line.length() - strlen("ciphertext: "));
 	}else{
+	  throw std::runtime_error("Line 1 is \"" + line + "\"");
 	  err = true;
 	}
 	++linenum;
@@ -124,24 +126,23 @@ int main(int argc, char *argv[]){
     return 0;
   }
   
-  std::fstream inputfile, outputfile;
+  std::ifstream inputfile(argv[1], std::ios::binary);
+  if(!inputfile.is_open()){
+    std::cerr << "Unable to open input file" << std::endl;
+    return 1;
+  }
+  
+  std::ofstream outputfile(argv[2], std::ios::binary);
+  if(!outputfile.is_open()){
+    std::cerr << "Unable to open output file" << std::endl;
+    return 2;
+  }
+
   std::string mode, text, userkey;
 
-  inputfile.open(argv[1], std::fstream::in);
-  if(!inputfile.is_open()){
-    std::cout << "Unable to open input file" << std::endl;
-    return 0;
-  }
-
-  outputfile.open(argv[2], std::fstream::out | std::fstream::trunc);
-  if(!outputfile.is_open()){
-    std::cout << "Unable to open output file" << std::endl;
-    return 0;
-  }
-
   if(parseRC6Textfile(inputfile, mode, text, userkey) != 0){
-    std::cout << "Error parsing input file" << std::endl;
-    return 0;
+    std::cerr << "Error parsing input file" << std::endl;
+    return 3;
   }
 
   remove_whitespace(text);
@@ -150,9 +151,9 @@ int main(int argc, char *argv[]){
   RC6 rc6 = RC6(RC6_W, RC6_R, keylength(userkey));
   const std::string result = rc6.run(mode, text, userkey);
 
-  if(mode.compare(0, strlen("Encryption"), "Encryption") == 0){
+  if(mode=="Encryption"){
     outputfile << "ciphertext: " << result << std::endl;
-  }else if(mode.compare(0, strlen("Decryption"), "Decryption") == 0){
+  }else if(mode=="Decryption"){
     outputfile << "plaintext: " << result << std::endl;
   }
 
