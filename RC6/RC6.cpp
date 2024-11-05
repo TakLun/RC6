@@ -4,14 +4,14 @@
 #include <cstring>
 #include <iomanip>
 
-RC6::RC6(unsigned int W, unsigned int R, unsigned int B){
-  w = W;
-  r = R;
-  b = B;
-  log_w = (unsigned int)log2(w);
-  modulo = std::pow(2, w);
-  S = new unsigned int[2 * r + 4];
-}
+RC6::RC6(unsigned int W, unsigned int R, unsigned int B)
+: w{W}
+, r{R}
+, b{B}
+, log_w{ (unsigned int)log2(w) }
+, modulo{ 1<<w }
+, S(2*r + 4)
+{ }
 
 void RC6::rc_constraints(const unsigned int &w, unsigned int &p, unsigned int &q){
   p = (unsigned int)std::ceil(((M_E - 2) * std::pow(2, w)));
@@ -114,17 +114,17 @@ std::string RC6::hex_to_string(unsigned int A, unsigned int B, unsigned int C, u
  *              The function then outputs the w-bit round keys
  *              S[0, ... , 2r+3]
  ******************************************************************/
-void RC6::key_schedule(std::string key){
+void RC6::key_schedule(const std::string& key){
   const unsigned int w_bytes = std::ceil((float)w / 8);
   const unsigned int c = std::ceil((float)b / w_bytes);
 
   unsigned int p, q;
   rc_constraints(w, p, q);
 
-  L = new unsigned int[c];
+  L.resize(c);
   for(int i = 0; i < c; i++){
     L[i] = strtoul(little_endian(key.substr(w_bytes * 2 * i, w_bytes * 2)).c_str(), NULL, 16);
-  }  
+  }
 
   S[0] = p;
   for(int i = 1; i <= (2 * r + 3); i++){
@@ -243,8 +243,4 @@ std::string RC6::run(const std::string &mode, const std::string &text, const std
   }
 
   return result;
-}
-
-RC6::~RC6(){
-  delete S;
 }

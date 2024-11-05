@@ -19,10 +19,10 @@ private:
   std::string mode, text, key;    // mode:  encryption or decryption
                                   // text:  text to excrypt or decrypt
                                   // key:   user supplied key
-  unsigned int *S;                // s:     stores the number of w-bits words
+  std::vector<unsigned int> S;    // s:     stores the number of w-bits words
                                   //        that will be generated for the 
                                   //        additive round keys is 2r+4
-  unsigned int *L;
+  std::vector<unsigned int> L;
 
   // RC6 Functons
 
@@ -39,7 +39,7 @@ private:
    *              The function then outputs the w-bit round keys
    *              S[0, ... , 2r+3]
    ******************************************************************/
-  void key_schedule(std::string key);
+  void key_schedule(const std::string& key);
 
   /******************************************************************
    * Function: encrypt
@@ -91,12 +91,11 @@ private:
 
 public:
   // RC6-w/r/b
-  RC6(unsigned int W = 32, unsigned int R = 20, unsigned int B = 16);
+  explicit RC6(unsigned int W = 32, unsigned int R = 20, unsigned int B = 16);
 
   //run RC6
   std::string run(const std::string &, const std::string &, const std::string &);
 
-  ~RC6();
 };
 
 #endif
